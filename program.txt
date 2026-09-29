@@ -1,6 +1,7 @@
-INP
-ADD 3
-ADP
-lm
-OUT
-2
+        INP
+loop    OUT
+        SUB one
+        BRZ end
+        BRA loop
+end     HLT
+one     1

@@ -1,3 +1,5 @@
+import tkinter as tk
+
 # Registers
 pc = 0
 mar = 0
@@ -11,12 +13,12 @@ ram = 1024
 
 memory = [None] * ram
 
-instruction_set = ["ADD", "SUB", "STA", "LDA", "BRA", "OUT", "HLT", "INP", "BRZ"]
+instruction_set = ["ADD", "SUB", "STA", "LDA", "BRA", "OUT", "HLT", "INP", "BRZ", "BRP"]
 
 # Program Code Loader
 
 counter = 0
-with open("program.txt") as f:
+with open("program_assembled.txt") as f:
   for line in f:
     line = line.strip('\n')
     memory[counter] = line
@@ -24,6 +26,7 @@ with open("program.txt") as f:
 
 def fde():
     global pc, mar, mdr, ir, acc
+
     # Fetch
 
     mar = pc
@@ -32,17 +35,25 @@ def fde():
 
     pc +=1
 
-    # Decode   
+    # Decode
+
+    if ir is None:
+        print("ERROR: attempted to read empty memory address " + mar)
+        return False
 
     operand = None
 
     ins = str(ir)[:3]
-    print(f"INS: {ins}")
+    #print(f"INS: {ins}")
+
+    if ins not in instruction_set:
+        print(f"ERROR: '{ir}' at address {mar} is not a recognised instruction")
+        return False
 
     if len(ir) > 3:
         operand = int(ir[4:])
 
-    print(f"OP: {operand}")
+    #print(f"OP: {operand}")
 
     if ins in instruction_set:
 
@@ -76,7 +87,9 @@ def fde():
                 if acc == 0:
                     pc = operand
 
-            print(f"\n")
+            if ins == "BRP":
+                if acc >= 0:
+                    pc = operand
 
         except:
             print(f"ERROR: Address {operand} does not contain a number")
