@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            platform: windows
+          - os: ubuntu-22.04
+            platform: linux
+          - os: macos-latest
+            platform: macos
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check tkinter
+        run: |
+          if ! python -c "import tkinter"; then
+            if [ "$RUNNER_OS" = "Linux" ]; then
+              sudo apt-get update
+              sudo apt-get install -y tk8.6 libtk8.6
+            else
+              echo "tkinter missing on $RUNNER_OS"
+              exit 1
+            fi
+          fi
+          python -c "import tkinter; print('Tk', tkinter.TkVersion)"
+
+      - run: pip install pyinstaller
+
+      - run: pyinstaller --onefile --windowed --name python-lmc-emulator main.py
+
+      - name: Package
+        run: |
+          mkdir out
+          case "${{ matrix.platform }}" in
+            windows) cp dist/python-lmc-emulator.exe out/python-lmc-emulator-windows.exe ;;
+            linux)   cp dist/python-lmc-emulator out/python-lmc-emulator-linux ;;
+            macos)   ditto -c -k --keepParent dist/python-lmc-emulator.app out/python-lmc-emulator-macos.zip ;;
+          esac
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: python-lmc-emulator-${{ matrix.platform }}
+          path: out/*
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
