@@ -1,7 +1,7 @@
-        INP
-loop    OUT
-        SUB one
-        BRZ end
-        BRA loop
-end     HLT
-one     1
+INP
+loop OUT
+SUB one
+BRZ end
+BRA loop
+end HLT
+one 1

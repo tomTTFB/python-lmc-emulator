@@ -1,0 +1,19 @@
+INP
+STA a
+INP
+STA b
+loop LDA b
+BRZ done
+SUB one
+STA b
+LDA result
+ADD a
+STA result
+BRA loop
+done LDA result
+OUT
+HLT
+a 0
+b 0
+result 0
+one 1

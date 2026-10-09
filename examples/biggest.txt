@@ -1,0 +1,14 @@
+INP
+STA first
+INP
+STA second
+SUB first
+BRP secondbig
+LDA first
+OUT
+HLT
+secondbig LDA second
+OUT
+HLT
+first 0
+second 0

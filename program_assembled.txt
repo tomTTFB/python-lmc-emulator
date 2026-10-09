@@ -1,0 +1,7 @@
+INP
+OUT
+SUB 6
+BRZ 5
+BRA 1
+HLT
+1

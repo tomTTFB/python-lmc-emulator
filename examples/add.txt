@@ -1,0 +1,7 @@
+INP
+STA first
+INP
+ADD first
+OUT
+HLT
+first 0

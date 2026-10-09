@@ -1,0 +1,16 @@
+loop LDA a
+OUT
+ADD b
+STA next
+LDA b
+STA a
+LDA next
+STA b
+LDA limit
+SUB a
+BRP loop
+HLT
+a 0
+b 1
+next 0
+limit 100
