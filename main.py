@@ -1,6 +1,8 @@
 import tkinter as tk
-from tkinter import simpledialog, ttk, filedialog
+from tkinter import simpledialog, ttk, filedialog, messagebox
 from assembler import assemble
+
+run_job = None
 
 # Registers
 pc = 0
@@ -28,16 +30,18 @@ def load_file():
         editor.insert("1.0", f.read())
 
 def save_file():
-    assembled, counter = assemble(editor.get("1.0", "end"))
     path = filedialog.asksaveasfilename(defaultextension=".txt", filetypes=[("Text Files", "*.txt")])
     if not path:
         return
     with open(path, "w") as f:
-        for address in range(counter):
-            f.write(str(assembled[address]) + "\n")
+        f.write(editor.get("1.0", "end-1c"))
 
 def fde():
     global pc, mar, mdr, ir, acc
+
+    if pc < 0 or pc >= ram:
+        write_output(f"ERROR: PC out of range ({pc})")
+        return False
 
     # Fetch
 
@@ -53,17 +57,29 @@ def fde():
         write_output(f"ERROR: attempted to read empty memory address {mar}")
         return False
 
+    try:
+        int(ir)
+        write_output(f"ERROR: tried to execute data '{ir}' at address {mar}")
+        return False
+    except ValueError:
+        pass 
+
     operand = None
 
     ins = str(ir)[:3]
     #print(f"INS: {ins}")
 
-    if ins not in instruction_set and not ins.isdigit():
+    if ins not in instruction_set:
         write_output(f"ERROR: '{ir}' at address {mar} is not a recognised instruction")
         return False
 
     if len(ir) > 3:
         operand = int(ir[4:])
+
+    needs_operand = ["ADD", "SUB", "STA", "LDA", "BRA", "BRZ", "BRP"]
+    if ins in needs_operand and operand is None:
+        write_output(f"ERROR: {ins} at address {mar} needs an operand")
+        return False
 
     #print(f"OP: {operand}")
 
@@ -109,8 +125,14 @@ def fde():
                 if acc >= 0:
                     pc = operand
 
-        except:
-            write_output(f"ERROR: Address {operand} does not contain a number")
+        except IndexError:
+            write_output(f"ERROR: Address {operand} is out of range")
+            return False
+        except TypeError:
+            write_output(f"ERROR: Address {operand} is empty")
+            return False
+        except ValueError:
+            write_output(f"ERROR: Address {operand} contains '{memory[operand]}', not a number")
             return False
 
         return True
@@ -134,7 +156,7 @@ def update_registers():
     ir_label.config(text=f"IR: {ir}")
     acc_label.config(text=f"ACC: {acc}")
     mem_list.selection_clear(0, "end")
-    if pc < ram:
+    if 0 <= pc < ram:
         mem_list.selection_set(pc)
         mem_list.see(pc)
 
@@ -152,7 +174,10 @@ def run():
     run_loop()
 
 def reset():
-    global memory, pc, mar, mdr, ir, acc
+    global memory, pc, mar, mdr, ir, acc, run_job
+    if run_job is not None:
+        root.after_cancel(run_job)
+        run_job = None
     memory = program.copy()
     pc = mar = mdr = ir = acc = 0
     mem_list.delete(0, "end")
@@ -233,13 +258,20 @@ def write_output(text):
 
 def push_to_memory():
     global program
-    program, counter = assemble(editor.get("1.0", "end"))
+    try:
+        program, counter = assemble(editor.get("1.0", "end"))
+    except ValueError as e:
+        messagebox.showerror("Assembler error", str(e))
+        return
     reset()
     notebook.select(cpu_tab)
 
 def run_loop():
+    global run_job
     if step():
-        root.after(100, run_loop)
+        run_job = root.after(100, run_loop)
+    else:
+        run_job = None
 
 # Assembler
 

@@ -1,5 +1,12 @@
 import os
 
+def is_number(text):
+    try:
+        int(text)
+        return True
+    except ValueError:
+        return False
+
 def assemble(source):
 
     labels = {}
@@ -14,16 +21,25 @@ def assemble(source):
         word = line.split()
         if not word:
             continue
-        if word[0] not in instruction_set and not word[0].isdigit():
+        if word[0] not in instruction_set and not is_number(word[0]):
             labels[word[0]] = counter
             word.pop(0)
+            if not word:
+                continue
         memory[counter] = " ".join(word)
         counter += 1
 
     for address in range(counter):
         words = memory[address].split()
-        if len(words) > 1 and words[1] in labels:
-            memory[address] = words[0] + " " + str(labels[words[1]])
+        if len(words) > 1:
+            operand = words[1]
+            if operand in labels:
+                memory[address] = words[0] + " " + str(labels[operand])
+            else:
+                try:
+                    int(operand)
+                except ValueError:
+                    raise ValueError(f"Unknown label '{operand}' at address {address}")
 
     return memory, counter
 
