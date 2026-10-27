@@ -27,17 +27,17 @@ It's a remake of a CPU simulator I originally built in Scratch in one night, bas
 ### Installing
 
 * Download the build for your OS from the [Releases](../../releases) page:
-  * Windows: `lmc-emulator-windows.exe`
-  * Linux: `lmc-emulator-linux`
-  * macOS: `lmc-emulator-macos.zip` (unzip it first)
+  * Windows: `python-lmc-emulator-windows.exe`
+  * Linux: `python-lmc-emulator-linux`
+  * macOS: `python-lmc-emulator-macos.zip` (unzip it first)
 * On Linux, make the file executable before running it:
 ```
-chmod +x lmc-emulator-linux
+chmod +x python-lmc-emulator-linux
 ```
 * To run from source instead, clone the repo:
 ```
-git clone https://github.com/tomTTFB/python-lcm-emulator.git
-cd python-lcm-emulator
+git clone https://github.com/tomTTFB/python-lmc-emulator.git
+cd python-lmc-emulator
 ```
 
 ### Executing program
@@ -50,7 +50,7 @@ python main.py
 * Click **Push to memory**. This assembles the program, loads it into memory and switches to the CPU tab.
 * On the **CPU** tab, click **Step** to run one instruction at a time, or **Run** to run the whole program.
 * Click **Reset** to put the program back to how it was when you pushed it and start again.
-* **Save to file** on the Assembler tab saves the assembled version of your program, with labels replaced by addresses.
+* **Save to file** on the Assembler tab saves the source version of your program, so it can be loaded and edited later.
 
 #### Instructions
 
@@ -69,27 +69,29 @@ python main.py
 
 You can put a **label** at the start of a line and use it instead of an address. To store a **number** in memory, put it on its own line, optionally with a label.
 
+Comments can be made by using `//` or `;`, they work anywhere on a line
+
 #### Example: countdown
 
 Asks for a number, then counts down to 1:
 ```
-INP
+INP // ask for a number
 loop OUT
-SUB one
-BRZ end
+SUB one // subtracts 1
+BRZ end // stop when we hit 0
 BRA loop
 end HLT
 one 1
 ```
 
-there is more examples in the [`examples`](examples) folder.
+There are more examples in the [`examples`](examples) folder.
 
 ## Help
 
 * **Windows says it's from an unknown publisher.** The builds aren't signed. Click **More info**, then **Run anyway**.
 * **macOS won't open it.** Right-click the app, choose **Open**, then confirm.
-* **"not a recognised instruction" error.** The instructions are case-sensitive, so they need to be in capitals.
-* **The program stops with no message.** It probably run into a data line instead of an instruction. Check there's a `HLT` before your data.
+* **Instructions need to be in capitals.** Lowercase ones like `out` get read as labels, which can cause confusing errors or lines being skipped.
+* **"tried to execute data" error.** The program ran into a data line instead of an instruction. Check there's a `HLT` before your data.
 
 ## License
 
