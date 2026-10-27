@@ -6,6 +6,11 @@ def is_number(text):
         return True
     except ValueError:
         return False
+    
+def strip_comment(line):
+    for marker in ("//", ";"):
+        if marker in line:
+            line = line.split(marker, 1)[0]
 
 def assemble(source):
 
@@ -18,7 +23,7 @@ def assemble(source):
 
     for line in source.splitlines():
         # Strip out any invalid instructions while keeping data
-        word = line.split()
+        word = strip_comment(line).split()
         if not word:
             continue
         if word[0] not in instruction_set and not is_number(word[0]):
